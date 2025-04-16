@@ -1,9 +1,8 @@
 {
   "name": "screenLogger",
-  "version": "1.0.0",
-  "description": "A JavaScript utility for logging to an on-screen div container with various features.",
-  "author": "Paul Mogilöv",
-  "license": "GPL-3.0-or-later",
+  "version": "1.0.1",
+  "description": "Lightweight JavaScript utility for logging messages to a floating on-screen panel.",
+  "license": "MIT",
   "devDependencies": {
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.95.0",
@@ -13,3 +12,4 @@
     "build": "webpack"
   }
 }
+

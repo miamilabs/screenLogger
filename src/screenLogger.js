@@ -1,4 +1,4 @@
-var xmediaLogger = xmediaLogger || (function () {
+var screenLogger = screenLogger || (function () {
     'use strict'; // Enforce stricter parsing and error handling
 
     // --- Configuration & State ---
@@ -80,7 +80,7 @@ var xmediaLogger = xmediaLogger || (function () {
     // Storage Logging
     var isStorageLoggingEnabled = false;
     var storageType = 'sessionStorage'; // 'localStorage' or 'sessionStorage'
-    var storageKey = 'xmediaLoggerEntries';
+    var storageKey = 'screenLoggerEntries';
     var storageLogLimit = 100; // Separate limit for storage
 
     // Original console backup
@@ -118,7 +118,7 @@ var xmediaLogger = xmediaLogger || (function () {
     /**
      * Enables or disables automatic scrolling to the bottom on new log messages.
      * @param {boolean} [enable=true] - True to enable, false to disable.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function setAutoScroll(enable) {
         isAutoScrollEnabled = (enable !== false); // Default to true
@@ -126,7 +126,7 @@ var xmediaLogger = xmediaLogger || (function () {
         if (isAutoScrollEnabled) {
             scrollToBottom(); // Scroll to bottom immediately when enabling
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Create or retrieve the main logger container div
@@ -134,7 +134,7 @@ var xmediaLogger = xmediaLogger || (function () {
         var outer = document.getElementById(loggerId);
         if (!outer) {
             if (!document.body) {
-                originalConsole.error && originalConsole.error('[xmediaLogger] Document body not found. Cannot create logger container.');
+                originalConsole.error && originalConsole.error('[screenLogger] Document body not found. Cannot create logger container.');
                 return null;
             }
             outer = document.createElement('div');
@@ -192,7 +192,7 @@ var xmediaLogger = xmediaLogger || (function () {
             titleBar.style.padding = '0 5px';
             titleBar.style.fontSize = '12px';
             titleBar.style.fontWeight = 'bold';
-            titleBar.innerHTML = 'xmediaLogger v' + version +
+            titleBar.innerHTML = 'screenLogger v' + version +
                 ' <span id="' + loggerId + '-close" style="float:right; cursor:pointer; padding: 0 5px;">&times;</span>' +
                 ' <span id="' + loggerId + '-min" style="float:right; cursor:pointer; padding: 0 5px;">&minus;</span>';
             outer.appendChild(titleBar);
@@ -247,7 +247,7 @@ var xmediaLogger = xmediaLogger || (function () {
                 outer.style[prop] = value;
             } catch (e) {
                 // Ignore style setting errors silently, or log to original console
-                originalConsole.error && originalConsole.error('[xmediaLogger] Error setting style ' + prop + ':', e);
+                originalConsole.error && originalConsole.error('[screenLogger] Error setting style ' + prop + ':', e);
             }
         }
     }
@@ -301,11 +301,11 @@ var xmediaLogger = xmediaLogger || (function () {
         }
 
         // Detect cycles (simple check)
-        if (obj.__xmediaLoggerVisited__) {
+        if (obj.__screenLoggerVisited__) {
             return '"[Circular Reference]"';
         }
         try {
-            obj.__xmediaLoggerVisited__ = true; // Mark as visited
+            obj.__screenLoggerVisited__ = true; // Mark as visited
 
             if (Array.isArray(obj)) {
                 if (obj.length === 0) {
@@ -328,7 +328,7 @@ var xmediaLogger = xmediaLogger || (function () {
             } else { // Generic object
                 var keys = [];
                 for (var key in obj) {
-                    if (obj.hasOwnProperty(key) && key !== '__xmediaLoggerVisited__') { // Exclude our marker
+                    if (obj.hasOwnProperty(key) && key !== '__screenLoggerVisited__') { // Exclude our marker
                         keys.push(key);
                     }
                 }
@@ -352,7 +352,7 @@ var xmediaLogger = xmediaLogger || (function () {
             }
         } finally {
             // Clean up the marker, even if an error occurred during stringification
-            delete obj.__xmediaLoggerVisited__;
+            delete obj.__screenLoggerVisited__;
         }
 
         return result;
@@ -423,7 +423,7 @@ var xmediaLogger = xmediaLogger || (function () {
 
             var logDiv = _getLogContainer();
             if (!logDiv) { // Fail safe if container couldn't be created/found
-                originalConsole.error && originalConsole.error('[xmediaLogger] Log container not found.');
+                originalConsole.error && originalConsole.error('[screenLogger] Log container not found.');
                 return;
             }
 
@@ -434,7 +434,7 @@ var xmediaLogger = xmediaLogger || (function () {
             try {
                 messageText = messageArray.map(_convertToString).join(' ');
             } catch (e) {
-                messageText = '[xmediaLogger] Error converting log arguments: ' + e.message;
+                messageText = '[screenLogger] Error converting log arguments: ' + e.message;
                 level = 'error'; // Treat conversion errors as errors
             }
 
@@ -511,14 +511,14 @@ var xmediaLogger = xmediaLogger || (function () {
                 try {
                     socket.send(JSON.stringify(logEntry)); // Send the structured log entry
                 } catch (e) {
-                    originalConsole.warn && originalConsole.warn('[xmediaLogger] WebSocket send error:', e);
+                    originalConsole.warn && originalConsole.warn('[screenLogger] WebSocket send error:', e);
                     // Consider disabling WS temporarily on repeated errors
                 }
             }
 
         } catch (e) {
             // Catch errors during the rendering process itself
-            originalConsole.error && originalConsole.error('[xmediaLogger] Critical error in _renderLogMessage:', e);
+            originalConsole.error && originalConsole.error('[screenLogger] Critical error in _renderLogMessage:', e);
             isLoggingToConsole = false; // Prevent potential loops if the error is in console logging itself
             _safeSetStyle('border', '2px solid red'); // Visual indication of logger error
         } finally {
@@ -957,7 +957,7 @@ var xmediaLogger = xmediaLogger || (function () {
     function initializeWebSocket() {
         if (!isWebSocketEnabled) return; // Don't initialize if not enabled
         if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-            originalConsole.log && originalConsole.log('[xmediaLogger] WebSocket already connecting or open.');
+            originalConsole.log && originalConsole.log('[screenLogger] WebSocket already connecting or open.');
             return; // Don't create multiple connections
         }
         // Clear any pending reconnect timer
@@ -967,7 +967,7 @@ var xmediaLogger = xmediaLogger || (function () {
         }
 
         if (!('WebSocket' in window)) {
-            originalConsole.warn && originalConsole.warn('[xmediaLogger] WebSocket is not supported by this browser.');
+            originalConsole.warn && originalConsole.warn('[screenLogger] WebSocket is not supported by this browser.');
             _renderLogMessage('warn', ['WebSocket is not supported.']);
             isWebSocketEnabled = false; // Disable WS if not supported
             return;
@@ -980,7 +980,7 @@ var xmediaLogger = xmediaLogger || (function () {
             socket = new WebSocket(wsURL);
 
             socket.onopen = function () {
-                originalConsole.log && originalConsole.log('[xmediaLogger] WebSocket connection established to ' + wsURL);
+                originalConsole.log && originalConsole.log('[screenLogger] WebSocket connection established to ' + wsURL);
                 _renderLogMessage('info', ['WebSocket connection established.']);
                 // Reset reconnect timer on successful connection
                 if (webSocketReconnectTimer) {
@@ -993,7 +993,7 @@ var xmediaLogger = xmediaLogger || (function () {
 
             socket.onclose = function (event) {
                 var reason = event.code + (event.reason ? ' (' + event.reason + ')' : '');
-                originalConsole.log && originalConsole.log('[xmediaLogger] WebSocket connection closed. Code: ' + reason);
+                originalConsole.log && originalConsole.log('[screenLogger] WebSocket connection closed. Code: ' + reason);
                 _renderLogMessage('warn', ['WebSocket connection closed. Code: ' + reason]);
                 socket = null; // Clear the socket object
 
@@ -1006,7 +1006,7 @@ var xmediaLogger = xmediaLogger || (function () {
             };
 
             socket.onerror = function (error) {
-                originalConsole.error && originalConsole.error('[xmediaLogger] WebSocket Error: ', error);
+                originalConsole.error && originalConsole.error('[screenLogger] WebSocket Error: ', error);
                 _renderLogMessage('error', ['WebSocket Error. See browser console for details.']);
                 // Don't immediately disable, let onclose handle reconnection attempts
                 // isWebSocketEnabled = false; // Optionally disable on error
@@ -1015,12 +1015,12 @@ var xmediaLogger = xmediaLogger || (function () {
 
             socket.onmessage = function (event) {
                 // Avoid logging received messages back to the logger to prevent loops
-                originalConsole.log && originalConsole.log('[xmediaLogger] WebSocket message received:', event.data);
+                originalConsole.log && originalConsole.log('[screenLogger] WebSocket message received:', event.data);
                 handleServerMessage(event.data);
             };
 
         } catch (e) {
-            originalConsole.error && originalConsole.error('[xmediaLogger] Failed to create WebSocket:', e);
+            originalConsole.error && originalConsole.error('[screenLogger] Failed to create WebSocket:', e);
             _renderLogMessage('error', ['Failed to create WebSocket: ' + e.message]);
             isWebSocketEnabled = false;
             _scheduleWebSocketReconnect(); // Still attempt reconnect even if initial creation failed
@@ -1040,7 +1040,7 @@ var xmediaLogger = xmediaLogger || (function () {
     function handleServerMessage(data) {
         try {
             var message = JSON.parse(data);
-            originalConsole.log && originalConsole.log('[xmediaLogger] Processing command from server:', message.command);
+            originalConsole.log && originalConsole.log('[screenLogger] Processing command from server:', message.command);
 
             // Define commands in a more structured way
             var commands = {
@@ -1124,11 +1124,11 @@ var xmediaLogger = xmediaLogger || (function () {
             if (message.command && commands[message.command]) {
                 commands[message.command](message);
             } else {
-                originalConsole.warn && originalConsole.warn('[xmediaLogger] Unknown command received from server:', message.command);
+                originalConsole.warn && originalConsole.warn('[screenLogger] Unknown command received from server:', message.command);
             }
 
         } catch (e) {
-            originalConsole.error && originalConsole.error('[xmediaLogger] Failed to handle server message:', e, 'Data:', data);
+            originalConsole.error && originalConsole.error('[screenLogger] Failed to handle server message:', e, 'Data:', data);
             _renderLogMessage('error', ['Failed to parse or handle message from server.']);
         }
     }
@@ -1154,7 +1154,7 @@ var xmediaLogger = xmediaLogger || (function () {
 
         } catch (e) {
             // Handle potential storage errors (e.g., quota exceeded)
-            originalConsole.error && originalConsole.error('[xmediaLogger] Error writing to ' + storageType + ':', e);
+            originalConsole.error && originalConsole.error('[screenLogger] Error writing to ' + storageType + ':', e);
             _renderLogMessage('error', ['Failed to write log to ' + storageType + '. Storage might be full.']);
             // Disable storage logging automatically if it fails repeatedly?
             isStorageLoggingEnabled = false;
@@ -1171,7 +1171,7 @@ var xmediaLogger = xmediaLogger || (function () {
             var storedLogsRaw = window[storageType].getItem(storageKey);
             return storedLogsRaw ? JSON.parse(storedLogsRaw) : [];
         } catch (e) {
-            originalConsole.error && originalConsole.error('[xmediaLogger] Error reading from ' + storageType + ':', e);
+            originalConsole.error && originalConsole.error('[screenLogger] Error reading from ' + storageType + ':', e);
             _renderLogMessage('error', ['Failed to read logs from ' + storageType + '. Data might be corrupt.']);
             // Optionally clear corrupt data:
             // window[storageType].removeItem(storageKey);
@@ -1191,12 +1191,12 @@ var xmediaLogger = xmediaLogger || (function () {
 
         if (!isInitialized) {
             // If called before initialization, simply store the desired position
-            return xmediaLogger;
+            return screenLogger;
         }
 
         var outer = _getLoggerElement();
         if (!outer) {
-            return xmediaLogger;
+            return screenLogger;
         }
 
         // Log the position change for debugging
@@ -1269,7 +1269,7 @@ var xmediaLogger = xmediaLogger || (function () {
         // Adjust scroll position so that the latest logs are visible
         scrollToBottom();
 
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Set width explicitly (useful after setting position or for custom sizing)
@@ -1286,7 +1286,7 @@ var xmediaLogger = xmediaLogger || (function () {
                 }
             }
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Set height explicitly
@@ -1303,14 +1303,14 @@ var xmediaLogger = xmediaLogger || (function () {
                 }
             }
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Toggle fullscreen mode
     function setFullscreen(enable) {
         isFullscreen = !!enable; // Coerce to boolean
         var outer = _getLoggerElement();
-        if (!outer) return xmediaLogger;
+        if (!outer) return screenLogger;
 
         if (isFullscreen) {
             // Store previous styles before going fullscreen? Might be overkill.
@@ -1327,13 +1327,13 @@ var xmediaLogger = xmediaLogger || (function () {
         }
         // Ensure scroll position is reasonable after resize
         scrollToBottom();
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Show or hide the logger UI
     function toggleVisibility(visible) {
         var outer = _getLoggerElement();
-        if (!outer) return xmediaLogger;
+        if (!outer) return screenLogger;
 
         var isCurrentlyVisible = outer.style.display !== 'none';
         var show = (typeof visible === 'boolean') ? visible : !isCurrentlyVisible;
@@ -1351,19 +1351,19 @@ var xmediaLogger = xmediaLogger || (function () {
             minBtn.innerHTML = show ? '&minus;' : '&#9633;'; // Minus or Square symbol
         }
 
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // --- Public API Methods ---
 
     /**
-     * Enables the xmediaLogger, overrides console methods, and creates the UI.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * Enables the screenLogger, overrides console methods, and creates the UI.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function enable() {
         if (isEnabled) {
-            originalConsole.warn && originalConsole.warn('[xmediaLogger] Logger already enabled.');
-            return xmediaLogger;
+            originalConsole.warn && originalConsole.warn('[screenLogger] Logger already enabled.');
+            return screenLogger;
         }
 
         _backupConsole(); // Ensure originals are saved
@@ -1384,25 +1384,25 @@ var xmediaLogger = xmediaLogger || (function () {
                 _overrideConsoleMethods();
                 _addGlobalListeners();
                 setAutoScroll(isAutoScrollEnabled);
-                _renderLogMessage('info', ['xmediaLogger v' + version + ' enabled. Pos: ' + config.position + ', Limit: ' + logLimit]);
+                _renderLogMessage('info', ['screenLogger v' + version + ' enabled. Pos: ' + config.position + ', Limit: ' + logLimit]);
             } else {
                 // Error handling
-                originalConsole.error && originalConsole.error('[xmediaLogger] Failed to initialize UI. Disabling logger.');
+                originalConsole.error && originalConsole.error('[screenLogger] Failed to initialize UI. Disabling logger.');
                 disable();
             }
         });
 
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
-     * Disables the xmediaLogger, restores console methods, and removes the UI.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * Disables the screenLogger, restores console methods, and removes the UI.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function disable() {
-        if (!isEnabled) return xmediaLogger;
+        if (!isEnabled) return screenLogger;
 
-        _renderLogMessage('info', ['xmediaLogger disabling...']); // Log before restoring console
+        _renderLogMessage('info', ['screenLogger disabling...']); // Log before restoring console
 
         isEnabled = false;
         _restoreConsoleMethods();
@@ -1448,27 +1448,27 @@ var xmediaLogger = xmediaLogger || (function () {
         // timers = {};
         isInitialized = false; // Mark as not initialized
 
-        originalConsole.log && originalConsole.log('[xmediaLogger] Disabled.');
+        originalConsole.log && originalConsole.log('[screenLogger] Disabled.');
 
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Pauses the rendering of new log messages to the screen logger UI.
      * Logs will still be captured in memory (and potentially WebSocket/Storage).
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function pause() {
         if (!isPaused) {
             isPaused = true;
             _renderLogMessage('info', ['Logger output paused.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Resumes the rendering of new log messages after being paused.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function resume() {
         if (isPaused) {
@@ -1477,13 +1477,13 @@ var xmediaLogger = xmediaLogger || (function () {
             // Maybe refresh display or scroll to bottom?
             scrollToBottom();
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Sets the maximum number of log entries displayed in the UI.
      * @param {number} limit - The maximum number of lines.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function setLogLimit(limit) {
         var newLimit = parseInt(limit, 10);
@@ -1504,13 +1504,13 @@ var xmediaLogger = xmediaLogger || (function () {
         } else {
             _renderLogMessage('warn', ['Invalid log limit specified: ' + limit + '. Must be a positive number.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Sets the active log levels. Only logs of these levels will be processed.
      * Pass level names as string arguments (e.g., setLogLevel('log', 'warn', 'error')).
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function setLogLevel(/* level1, level2, ... */) {
         var newLevels = { debug: false, log: false, info: false, warn: false, error: false };
@@ -1546,13 +1546,13 @@ var xmediaLogger = xmediaLogger || (function () {
         } else {
             _renderLogMessage('warn', ['No valid log levels provided to setLogLevel. Current levels remain unchanged.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Sets the font size for log messages.
      * @param {string} size - A valid CSS font-size value (e.g., '14px', '0.9em').
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function setTextSize(size) {
         if (typeof size === 'string' && size.length > 0) {
@@ -1571,12 +1571,12 @@ var xmediaLogger = xmediaLogger || (function () {
         } else {
             _renderLogMessage('warn', ['Invalid text size specified: ' + size]);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Enables displaying relative time elapsed since the log entry ('-Xs ago').
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function enableTimeCounter() {
         if (!isTimeCounterEnabled) {
@@ -1587,12 +1587,12 @@ var xmediaLogger = xmediaLogger || (function () {
                 timeCounterInterval = setInterval(_refreshTimestamps, 1000); // Refresh every second
             }
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Disables the relative time counter, showing absolute timestamps instead.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function disableTimeCounter() {
         if (isTimeCounterEnabled) {
@@ -1604,24 +1604,24 @@ var xmediaLogger = xmediaLogger || (function () {
             }
             _refreshDisplayFromLogEntries(); // Redraw logs with absolute timestamps
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Enables or disables pretty-printing for objects and arrays.
      * @param {boolean} enable - True to enable, false to disable.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function prettyPrint(enable) {
         isPrettyPrintEnabled = !!enable;
         _renderLogMessage('info', ['Pretty printing ' + (isPrettyPrintEnabled ? 'enabled' : 'disabled') + '.']);
         // Note: This only affects *new* logs. Existing logs won't be reformatted.
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Clears all log messages from the UI and the internal log buffer.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function clearLogs() {
         var logDiv = _getLogContainer();
@@ -1637,12 +1637,12 @@ var xmediaLogger = xmediaLogger || (function () {
         // if (isStorageLoggingEnabled) {
         //     try { window[storageType] && window[storageType].removeItem(storageKey); } catch(e){}
         // }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Scrolls the log display to the top.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function scrollToTop() {
         var outer = _getLoggerElement();
@@ -1652,13 +1652,13 @@ var xmediaLogger = xmediaLogger || (function () {
             // No timeout needed to reset isUserScrolling, as we are at the top
             // Autoscroll only triggers when near bottom.
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Scrolls the log display to the bottom (latest message).
      * Also re-enables auto-scrolling.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function scrollToBottom() {
         var outer = _getLoggerElement();
@@ -1666,13 +1666,13 @@ var xmediaLogger = xmediaLogger || (function () {
             outer.scrollTop = outer.scrollHeight;
             isUserScrolling = false; // Re-enable auto-scroll by scrolling to bottom
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Scrolls the log display up by a specified amount (or default).
      * @param {number} [amount=50] - The number of pixels to scroll up.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function scrollUp(amount) {
         amount = typeof amount === 'number' ? amount : keyConfig.scrollAmount;
@@ -1682,14 +1682,14 @@ var xmediaLogger = xmediaLogger || (function () {
             var targetPosition = Math.max(0, outer.scrollTop - amount);
             outer.scrollTop = targetPosition;
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Scrolls the log display down by a specified amount (or default).
      * Re-enables auto-scroll if scrolling reaches the bottom.
      * @param {number} [amount=50] - The number of pixels to scroll down.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function scrollDown(amount) {
         amount = typeof amount === 'number' ? amount : keyConfig.scrollAmount;
@@ -1702,13 +1702,13 @@ var xmediaLogger = xmediaLogger || (function () {
             var isAtBottom = Math.abs((outer.scrollHeight - outer.scrollTop) - outer.clientHeight) < 5;
             isUserScrolling = !isAtBottom; // Re-enable auto-scroll only if at bottom
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Enables keyboard controls for scrolling and interacting with the logger.
      * @param {object} [config] - Optional configuration object overriding default keys (e.g., { up: [38], down: [40], scrollAmount: 100 }).
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function enableKeyScroll(config) {
         if (!isKeyScrollEnabled) {
@@ -1720,12 +1720,12 @@ var xmediaLogger = xmediaLogger || (function () {
             _addGlobalListeners(); // Add new listener
             _renderLogMessage('info', ['Keyboard navigation enabled.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Disables keyboard controls for the logger.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function disableKeyScroll() {
         if (isKeyScrollEnabled) {
@@ -1734,18 +1734,18 @@ var xmediaLogger = xmediaLogger || (function () {
             _addGlobalListeners(); // Re-add other listeners (like error handler) if they were enabled
             _renderLogMessage('info', ['Keyboard navigation disabled.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Sets custom key codes for keyboard navigation actions.
      * @param {object} config - Configuration object (e.g., { up: [38, 87], down: [40], scrollAmount: 50 }).
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function setKeyConfig(config) {
         if (!config || typeof config !== 'object') {
             _renderLogMessage('warn', ['Invalid key configuration provided.']);
-            return xmediaLogger;
+            return screenLogger;
         }
 
         var updated = false;
@@ -1766,13 +1766,13 @@ var xmediaLogger = xmediaLogger || (function () {
         if (updated) {
             _renderLogMessage('info', ['Keyboard configuration updated.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Enables or disables catching and logging of uncaught global JavaScript errors (window.onerror).
      * @param {boolean} [enable=true] - True to enable, false to disable.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function enableWindowError(enable) {
         var newState = (enable !== false); // Default to true
@@ -1782,30 +1782,30 @@ var xmediaLogger = xmediaLogger || (function () {
             _addGlobalListeners(); // Add listeners based on new state
             _renderLogMessage('info', ['Window error capturing ' + (isWindowErrorEnabled ? 'enabled' : 'disabled') + '.']);
         }
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Enables or disables color-coding of log messages based on their level.
      * @param {boolean} [enable=true] - True to enable, false to disable.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function enableColors(enable) {
         isColorsEnabled = (enable !== false); // Default to true
         _renderLogMessage('info', ['Log message coloring ' + (isColorsEnabled ? 'enabled' : 'disabled') + '.']);
         _refreshDisplayFromLogEntries(); // Redraw logs with new color setting
-        return xmediaLogger;
+        return screenLogger;
     }
 
     /**
      * Enables or disables mirroring of log messages to the original browser console.
      * @param {boolean} [enable=true] - True to enable, false to disable.
-     * @returns {object} The xmediaLogger instance for chaining.
+     * @returns {object} The screenLogger instance for chaining.
      */
     function enableConsoleLogging(enable) {
         isLoggingToConsole = (enable !== false); // Default to true
         _renderLogMessage('info', ['Mirroring to original console ' + (isLoggingToConsole ? 'enabled' : 'disabled') + '.']);
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Helper to re-render logs currently in the DOM based on filters/settings
@@ -1864,11 +1864,11 @@ var xmediaLogger = xmediaLogger || (function () {
     function createControlPanel() {
         if (document.getElementById(controlPanelId)) {
             _renderLogMessage('warn', ['Control panel already exists.']);
-            return xmediaLogger; // Avoid creating multiple panels
+            return screenLogger; // Avoid creating multiple panels
         }
         if (!isInitialized) {
             _renderLogMessage('warn', ['Logger not initialized. Cannot create control panel yet.']);
-            return xmediaLogger;
+            return screenLogger;
         }
 
         var panel = document.createElement('div');
@@ -1944,7 +1944,7 @@ var xmediaLogger = xmediaLogger || (function () {
         document.body.appendChild(panel);
         _renderLogMessage('info', ['Control panel created.']);
 
-        return xmediaLogger;
+        return screenLogger;
     }
 
     // Helper to update button states in control panel if it exists
@@ -2025,17 +2025,17 @@ var xmediaLogger = xmediaLogger || (function () {
         setCustomStyle: function(styles) {
             if (!styles || typeof styles !== 'object') {
                 _renderLogMessage('warn', ['Invalid styles object provided.']);
-                return xmediaLogger;
+                return screenLogger;
             }
             var outer = _getLoggerElement();
-            if (!outer) return xmediaLogger;
+            if (!outer) return screenLogger;
 
             for (var prop in styles) {
                 if (styles.hasOwnProperty(prop)) {
                     _safeSetStyle(prop, styles[prop]);
                 }
             }
-            return xmediaLogger;
+            return screenLogger;
         },
         createControlPanel: createControlPanel,
 
